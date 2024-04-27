@@ -1,8 +1,8 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
 import { validatorMiddleware } from "./middlewares/validator.ts"
-import { authToken } from "./middlewares/auth.ts";
+import { authToken } from "./middlewares/auth.ts"
 import { UUID } from "./helpers/uuid-generator.ts"
-import { type JsonDB } from "./types/common.d.ts";
+import { FILE } from "./helpers/reader-file.ts"
 
 const app = new Hono()
 const api = new Hono().basePath("/api")
@@ -19,9 +19,7 @@ api.get("/urls/:id", async (c) => {
   const id = c.req.param("id")
 
   try {
-    const text = await Deno.readTextFile("./db.json");
-    const jsonFile: JsonDB = JSON.parse(text)
-    const { urls } = jsonFile;
+    const urls = await FILE.reader()
     const url = urls.find((url) => url.id === Number(id))
 
     if(!url) {
@@ -37,11 +35,11 @@ api.get("/urls/:id", async (c) => {
 // GET -> Busque y devuelva todas mis URL's acortadas
 api.get("/urls", async (c) => {
   try {
-    const text = await Deno.readTextFile("./db.json");
-    const jsonFile: JsonDB = JSON.parse(text)
+    const urls = await FILE.reader()
 
-    return c.json(jsonFile, 200)
+    return c.json({ urls }, 200)
   } catch (err) {
+    console.log(err)
     return c.json({ message: 'Internal server error', err }, 500)
   }
 })
@@ -53,9 +51,8 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
   let shortURL
 
   try {
-    const text = await Deno.readTextFile("./db.json");
-    const jsonFile: JsonDB = JSON.parse(text)
-    const { urls } = jsonFile
+    const urls = await FILE.reader()
+
     const lenght = urls.length
     const autoIncrementalID = lenght + 1
 
@@ -85,14 +82,34 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
       })
     }
 
-    await Deno.writeTextFile("./db.json", JSON.stringify(jsonFile));
+    await FILE.writter(urls)
 
     const response = JSON.stringify({ url: url, short_url: shortURL, is_custom: Boolean(customPath) })
     return c.body(response, 201)
   } catch (err) {
     return c.json({ message: 'Internal server error', err }, 500)
   }
+})
 
+// DELETE -> Eliminar, por id, los recursos guardados
+api.delete("/urls/:id", async (c) => {
+  const id = c.req.param("id")
+
+  try {
+    const urls = await FILE.reader()
+    const url = urls.find((url) => url.id === Number(id))
+
+    if(!url) {
+      return c.json({ message: "Not found url" }, 404)
+    }
+
+    const newUrls = urls.filter((url) => url.id !== Number(id))
+    await FILE.writter(newUrls)
+
+    return c.json({ message: 'Resource deleted' }, 200)
+  } catch (err) {
+    return c.json({ message: 'Internal server error', err }, 500)
+  }
 })
 
 // Handlers

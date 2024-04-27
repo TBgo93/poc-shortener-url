@@ -1,4 +1,4 @@
-interface SavedURL {
+export interface SavedURL {
   id: number
   original_url: string
   short_url: string
