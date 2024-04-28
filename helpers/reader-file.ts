@@ -1,4 +1,4 @@
-import { JsonDB } from "../types/common.d.ts";
+import { JsonDB } from "@/types/common.d.ts";
 
 const FILE_PATH = "./db.json"
 

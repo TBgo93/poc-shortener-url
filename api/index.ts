@@ -1,11 +1,11 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
-import { validatorMiddleware } from "./middlewares/validator.ts"
-import { authToken } from "./middlewares/auth.ts"
-import { UUID } from "./helpers/uuid-generator.ts"
-import { FILE } from "./helpers/reader-file.ts"
-import { MESSAGE } from "./constants/message.ts"
+import { validatorMiddleware } from "../middlewares/validator.ts"
+import { authToken } from "../middlewares/auth.ts"
+import { UUID } from "../helpers/uuid-generator.ts"
+import { FILE } from "../helpers/reader-file.ts"
+import { MESSAGE } from "../constants/message.ts"
+import { StatusCodes } from "../constants/http-status-codes.ts"
 
-const app = new Hono()
 const api = new Hono().basePath("/api")
 
 
@@ -24,12 +24,12 @@ api.get("/urls/:id", async (c) => {
     const url = urls.find((url) => url.id === Number(id))
 
     if(!url) {
-      return c.json({ message: MESSAGE.NotFound }, 404)
+      return c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND)
     }
 
-    return c.json({ url }, 200)
+    return c.json({ url }, StatusCodes.OK)
   } catch (err) {
-    return c.json({ message: MESSAGE.InternalServerError, err }, 500)
+    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
 })
 
@@ -38,10 +38,10 @@ api.get("/urls", async (c) => {
   try {
     const urls = await FILE.reader()
 
-    return c.json({ urls }, 200)
+    return c.json({ urls }, StatusCodes.OK)
   } catch (err) {
     console.log(err)
-    return c.json({ message: MESSAGE.InternalServerError, err }, 500)
+    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
 })
 
@@ -59,7 +59,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
 
     const alreadyExistUrl = urls.find(({ original_url }) => original_url === url)
     if(alreadyExistUrl) {
-      return c.json({ message: MESSAGE.AlreadyExist, resouce: alreadyExistUrl }, 409)
+      return c.json({ message: MESSAGE.AlreadyExist, resouce: alreadyExistUrl }, StatusCodes.CONFLICT)
     }
 
     if(customPath) {
@@ -86,9 +86,9 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
     await FILE.writter(urls)
 
     const response = JSON.stringify({ url: url, short_url: shortURL, is_custom: Boolean(customPath) })
-    return c.body(response, 201)
+    return c.body(response, StatusCodes.CREATED)
   } catch (err) {
-    return c.json({ message: MESSAGE.InternalServerError, err }, 500)
+    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
 })
 
@@ -101,36 +101,20 @@ api.delete("/urls/:id", async (c) => {
     const url = urls.find((url) => url.id === Number(id))
 
     if(!url) {
-      return c.json({ message: MESSAGE.NotFound }, 404)
+      return c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND)
     }
 
     const newUrls = urls.filter((url) => url.id !== Number(id))
     await FILE.writter(newUrls)
 
-    return c.json({ message: MESSAGE.Deleted }, 200)
+    return c.json({ message: MESSAGE.Deleted }, StatusCodes.OK)
   } catch (err) {
-    return c.json({ message: MESSAGE.InternalServerError, err }, 500)
+    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
 })
 
 // Handlers
-api.notFound((c) => c.json({ message: MESSAGE.NotFound }, 404))
-api.onError((err, c) => c.json({ message: MESSAGE.InternalServerError, err }, 500))
+api.notFound((c) => c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND))
+api.onError((err, c) => c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR))
 
-// Mount API routes
-app.route("/", api)
-
-// APP routes
-app.get('/', (c) => c.text("Index"))
-
-app.get('/ping', (c) => c.text("Pong!"))
-
-// Handlers
-app.notFound((c) => c.text(MESSAGE.NotFound, 404))
-
-app.onError((err, c) => {
-  console.error(`${err}`)
-  return c.text(MESSAGE.InternalServerError, 500)
-})
-
-Deno.serve({ port: 8787 }, app.fetch)
+export { api }
