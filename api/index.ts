@@ -1,10 +1,10 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
-import { validatorMiddleware } from "../middlewares/validator.ts"
-import { authToken } from "../middlewares/auth.ts"
-import { UUID } from "../helpers/uuid-generator.ts"
-import { FILE } from "../helpers/reader-file.ts"
-import { MESSAGE } from "../constants/message.ts"
-import { StatusCodes } from "../constants/http-status-codes.ts"
+import { validatorMiddleware } from "@/middlewares/validator.ts"
+import { authToken } from "@/middlewares/auth.ts"
+import { UUID } from "@/helpers/uuid-generator.ts"
+import { FILE } from "@/helpers/reader-file.ts"
+import { MESSAGE } from "@/constants/message.ts"
+import { StatusCodes } from "@/constants/http-status-codes.ts"
 
 const api = new Hono().basePath("/api")
 
