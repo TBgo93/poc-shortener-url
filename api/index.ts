@@ -71,9 +71,8 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
         is_custom: true
       })
     } else {
-      const uuid = await UUID.generate()
-      const [shortUUID] = uuid.split("-")
-      shortURL = String(HOST + "/v1/" + shortUUID)
+      const uuid = await UUID.generateShort()
+      shortURL = String(HOST + "/v1/" + uuid)
 
       urls.push({
         id: autoIncrementalID,
