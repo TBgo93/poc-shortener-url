@@ -3,6 +3,7 @@ export interface SavedURL {
   original_url: string
   short_url: string
   is_custom: boolean
+  hash: string
 }
 
 export interface JsonDB {
