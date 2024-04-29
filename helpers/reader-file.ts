@@ -1,4 +1,4 @@
-import { JsonDB } from "@/types/common.d.ts";
+import { JsonDB, SavedURL } from "@/types/common.d.ts";
 
 const FILE_PATH = "./db.json"
 
@@ -9,7 +9,7 @@ const readerFile = async () => {
   return urls
 }
 
-const writterFile = async (urls: JsonDB["urls"]) => {
+const writterFile = async (urls: SavedURL[]) => {
   await Deno.writeTextFile(FILE_PATH, JSON.stringify({ urls: urls}));
 }
 
