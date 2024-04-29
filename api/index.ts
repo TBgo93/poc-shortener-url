@@ -13,25 +13,7 @@ const api = new Hono().basePath("/api")
 api.use('/*', authToken)
 
 // API routes
-api.get('/ping', (c) => c.text("Pong!"))
-
-// GET -> Acepte la URL cortada y redireccione a la URL real
-api.get("/urls/:id", async (c) => {
-  const id = c.req.param("id")
-
-  try {
-    const urls = await FILE.reader()
-    const url = urls.find((url) => url.id === Number(id))
-
-    if(!url) {
-      return c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND)
-    }
-
-    return c.json({ url }, StatusCodes.OK)
-  } catch (err) {
-    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
-  }
-})
+api.get('/ping', (c) => c.text("Pong API!"))
 
 // GET -> Busque y devuelva todas mis URL's acortadas
 api.get("/urls", async (c) => {
@@ -50,6 +32,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
   const { origin: HOST } = new URL(c.req.url)
   const { url, customPath } = c.req.valid("json")
   let shortURL
+  let isCustom
 
   try {
     const urls = await FILE.reader()
@@ -62,29 +45,27 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
       return c.json({ message: MESSAGE.AlreadyExist, resouce: alreadyExistUrl }, StatusCodes.CONFLICT)
     }
 
+    const uuid = await UUID.generateShort()
+
     if(customPath) {
       shortURL = String(HOST + "/v1/" + customPath)
-      urls.push({
-        id: autoIncrementalID,
-        original_url: url,
-        short_url: shortURL,
-        is_custom: true
-      })
+      isCustom = true
     } else {
-      const uuid = await UUID.generateShort()
       shortURL = String(HOST + "/v1/" + uuid)
-
-      urls.push({
-        id: autoIncrementalID,
-        original_url: url,
-        short_url: shortURL,
-        is_custom: false
-      })
+      isCustom = false
     }
+
+    urls.push({
+      id: autoIncrementalID,
+      original_url: url,
+      short_url: shortURL,
+      is_custom: isCustom,
+      hash: uuid
+    })
 
     await FILE.writter(urls)
 
-    const response = JSON.stringify({ url: url, short_url: shortURL, is_custom: Boolean(customPath) })
+    const response = JSON.stringify({ url: url, short_url: shortURL })
     return c.body(response, StatusCodes.CREATED)
   } catch (err) {
     return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
@@ -97,13 +78,13 @@ api.delete("/urls/:id", async (c) => {
 
   try {
     const urls = await FILE.reader()
-    const url = urls.find((url) => url.id === Number(id))
+    const url = urls.find((url) => url.hash === id)
 
     if(!url) {
       return c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND)
     }
 
-    const newUrls = urls.filter((url) => url.id !== Number(id))
+    const newUrls = urls.filter((url) => url.hash !== id)
     await FILE.writter(newUrls)
 
     return c.json({ message: MESSAGE.Deleted }, StatusCodes.OK)
