@@ -5,11 +5,13 @@ const env = await load();
 const ENV_TOKEN = env["TOKEN"] ?? Deno.env.get("TOKEN")
 const ENV_USERNAME = env["USERNAME"] ?? Deno.env.get("USERNAME")
 const ENV_PASSWORD = env["PASSWORD"] ?? Deno.env.get("PASSWORD")
+const ENV_SECRET = env["SECRET"] ?? Deno.env.get("SECRET")
 
 const ENV = { 
   TOKEN: ENV_TOKEN,
   USERNAME: ENV_USERNAME,
-  PASSWORD: ENV_PASSWORD
+  PASSWORD: ENV_PASSWORD,
+  SECRET: ENV_SECRET
 }
 
 export { ENV }
