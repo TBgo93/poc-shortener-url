@@ -1,6 +1,6 @@
 {
   "tasks": {
-    "dev": "deno run --watch --allow-net --allow-read --allow-write index.ts"
+    "dev": "deno run --unstable --watch --allow-net --allow-read --allow-write --allow-env index.ts"
   },
   "imports": {
     "@/": "./"

@@ -1,16 +1,11 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
 import { validatorMiddleware } from "@/middlewares/validator.ts"
-import { authToken } from "@/middlewares/auth.ts"
 import { UUID } from "@/helpers/uuid-generator.ts"
 import { FILE } from "@/helpers/reader-file.ts"
 import { MESSAGE } from "@/constants/message.ts"
 import { StatusCodes } from "@/constants/http-status-codes.ts"
 
-const api = new Hono().basePath("/api")
-
-
-// Auth middleware
-api.use('/*', authToken)
+const api = new Hono()
 
 // API routes
 api.get('/ping', (c) => c.text("Pong API!"))
@@ -48,7 +43,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
     const uuid = await UUID.generateShort()
 
     if(customPath) {
-      shortURL = String(HOST + "/v1/" + customPath)
+      shortURL = String(HOST + "/v1" + customPath)
       isCustom = true
     } else {
       shortURL = String(HOST + "/v1/" + uuid)
