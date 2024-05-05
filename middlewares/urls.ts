@@ -1,4 +1,6 @@
 import { type MiddlewareHandler } from "https://deno.land/x/hono@v4.2.8/types.ts"
+import { getCookie } from "https://deno.land/x/hono@v4.2.8/helper.ts"
+import { JWT_TOKEN } from "@/constants/config-request.ts";
 
 type Payload = {
   url: FormDataEntryValue
@@ -6,6 +8,11 @@ type Payload = {
 }
 
 const validatorUrls: MiddlewareHandler = async (c) => {
+  const jwtCookie = getCookie(c, JWT_TOKEN)
+  if(!jwtCookie) {
+    return c.redirect("/auth")
+  }
+
   const formData = await c.req.formData()
   const originalUrl = formData.get("original_url")
   const customPath = formData.get("custom_path")
@@ -27,6 +34,7 @@ const validatorUrls: MiddlewareHandler = async (c) => {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': jwtCookie
       },
       body: JSON.stringify(payload)
     })

@@ -1,5 +1,5 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
-import { validatorMiddleware } from "@/middlewares/validator.ts"
+import { validatorMiddleware, validatorPermission } from "@/middlewares/validator.ts"
 import { UUID } from "@/helpers/uuid-generator.ts"
 import { FILE } from "@/helpers/reader-file.ts"
 import { MESSAGE } from "@/constants/message.ts"
@@ -7,8 +7,8 @@ import { StatusCodes } from "@/constants/http-status-codes.ts"
 
 const api = new Hono()
 
-// API routes
-api.get('/ping', (c) => c.text("Pong API!"))
+// Middlewares
+api.use("/*", validatorPermission)
 
 // GET -> Busque y devuelva todas mis URL's acortadas
 api.get("/urls", async (c) => {

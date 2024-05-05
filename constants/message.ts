@@ -3,7 +3,8 @@ const MESSAGE = {
   InternalServerError: "Internal server error",
   AlreadyExist: "Resource already exist",
   Deleted: "Resource deleted",
-  BadRequest: "Bad request"
+  BadRequest: "Bad request",
+  Unauthorized: "Unauthorized"
 }
 
 export { MESSAGE }
