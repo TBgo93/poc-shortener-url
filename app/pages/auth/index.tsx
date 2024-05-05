@@ -2,14 +2,16 @@
 /** @jsxFrag Fragment */
 import { type PropsWithChildren, type FC } from 'https://deno.land/x/hono@v4.2.8/middleware.ts'
 import { jsx, Fragment, useRequestContext } from 'https://deno.land/x/hono@v4.2.8/middleware.ts'
-import { getSignedCookie } from "https://deno.land/x/hono@v4.2.8/helper.ts"
+import { getSignedCookie, getCookie } from "https://deno.land/x/hono@v4.2.8/helper.ts"
 import { ENV } from "@/helpers/envs.ts";
+import { SSID, JWT_TOKEN } from '@/constants/config-request.ts';
 
 const AuthPage: FC<PropsWithChildren> = async () => {
   const c = useRequestContext()
-  const ssidSigned = await getSignedCookie(c, ENV.SECRET, "ssid")
+  const ssidCookie = await getSignedCookie(c, ENV.SECRET, SSID)
+  const jwtCookie = getCookie(c, JWT_TOKEN)
 
-  if(ssidSigned) {
+  if(ssidCookie && jwtCookie) {
     return (
       <> 
         <p>You are logged!</p>

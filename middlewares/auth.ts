@@ -3,17 +3,12 @@ import { bearerAuth, jwt } from "https://deno.land/x/hono@v4.2.8/middleware.ts"
 import { getCookie, setCookie, getSignedCookie, setSignedCookie, deleteCookie, jwtSign, jwtVerify } from "https://deno.land/x/hono@v4.2.8/helper.ts"
 import { ENV } from "@/helpers/envs.ts"
 import { JwtTokenExpired } from 'https://deno.land/x/hono@v4.2.8/utils/jwt/types.ts';
-
-const AUTH_PATH = "/auth"
-const AUTH_QUERY_PARAM = "sign-out"
-const SSID = "ssid"
-const JWT_TOKEN = "token_jwt"
-
+import { AUTH_PATH, AUTH_QUERY_PARAM, SSID, JWT_TOKEN } from "@/constants/config-request.ts";
 
 const makePayload = (user: string) => {
   return {
     user: user,
-    role: user === ENV.USERNAME ? 'admin' : 'read',
+    role: user === ENV.USERNAME ? ENV.PERMISSION_WRITE : ENV.PERMISSION_READ,
     exp: Math.floor(Date.now() / 1000) + 60 * 30, // 30 min
   }
 }
@@ -47,6 +42,7 @@ const customAuthMiddleware: MiddlewareHandler = async (c, next) => {
     return c.redirect(AUTH_PATH)
   }
 
+  c.header("Authorization", tokenToVerify)
   await next()
   return
 }
@@ -69,7 +65,7 @@ const validatorAuth: MiddlewareHandler = async (c) => {
     
     setCookie(c, JWT_TOKEN, tokenJwt)
     await setSignedCookie(c, SSID, ENV.TOKEN, ENV.SECRET)
-    c.header("Authorization", String("Bearer " + tokenJwt))
+    c.header("Authorization", tokenJwt)
 
     return c.redirect("/urls")
   }
