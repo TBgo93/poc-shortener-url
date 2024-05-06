@@ -5,7 +5,7 @@ import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
 import { jsx, secureHeaders, cors } from 'https://deno.land/x/hono@v4.2.8/middleware.ts'
 import { customAuthMiddleware, validatorAuth, jwtMiddleware } from "@/middlewares/auth.ts";
 import { bodyLimiter } from "@/middlewares/limiters.ts"
-import { validatorUrls } from "@/middlewares/urls.ts"
+import { validatorUrls, validatorDeleteUrl } from "@/middlewares/urls.ts"
 import { api } from "@/api/index.ts"
 import { v1 } from "@/api/v1/index.ts"
 import { MESSAGE } from "@/constants/message.ts"
@@ -39,6 +39,7 @@ app.get('/auth', (c) => c.render(<AuthPage />))
 app.post('/auth', validatorAuth)
 
 app.use("/urls/*", jwtMiddleware)
+app.use("/urls", validatorDeleteUrl)
 app.get("/urls", (c) => c.render(<UrlsPage />))
 app.get("/urls/cut", (c) => c.render(<CutUrlsPage />))
 app.post("/urls/cut", validatorUrls)

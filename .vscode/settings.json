@@ -3,5 +3,6 @@
     "./"
   ],
   "deno.enable": true,
+  "deno.unstable": true,
   "editor.inlayHints.enabled": "off"
 }

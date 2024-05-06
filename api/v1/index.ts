@@ -1,17 +1,22 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
-import { FILE } from "@/helpers/reader-file.ts"
 import { MESSAGE } from "@/constants/message.ts"
 import { StatusCodes } from "@/constants/http-status-codes.ts"
+import { SavedURL } from "@/types/common.d.ts";
+// DenoKV - BBDD
+const db = await Deno.openKv();
+const URLS = "urls"
 
 const v1 = new Hono()
-
 
 // GET -> Acepte la URL cortada y redireccione a la URL real
 v1.get("/:id", async (c) => {
   const id = c.req.param("id")
 
   try {
-    const urls = await FILE.reader()
+    const urls: SavedURL[] = []
+    const list = db.list<SavedURL>({ prefix: [URLS] })
+
+    for await (const res of list) urls.push(res.value)
     const url = urls.find((url) => url.hash === id)
 
     if(!url) {
