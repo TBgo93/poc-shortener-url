@@ -4,60 +4,65 @@ import { type PropsWithChildren, type FC } from 'https://deno.land/x/hono@v4.2.8
 import { jsx, Fragment, useRequestContext } from 'https://deno.land/x/hono@v4.2.8/middleware.ts'
 import { getCookie } from "https://deno.land/x/hono@v4.2.8/helper.ts"
 import { JWT_TOKEN } from "@/constants/config-request.ts";
-import { SavedURL } from '@/types/common.d.ts';
+import { getAllUrls } from "@/services/urls.ts";
 
 const UrlsPage: FC<PropsWithChildren> = async () => {
   const c = useRequestContext()
+  const { status, message } = c.req.query()
   const jwtCookie = getCookie(c, JWT_TOKEN)
+  // Buscar otra forma que no sea porq query param o sanitizarlor
 
-  let responseApi: { urls: SavedURL[] } = { urls: [] }
-  let ErrorReponse = ""
-
-  try {
-    const res = await fetch("http://localhost:8787/api/urls", {
-      headers: {
-        "Authorization": jwtCookie ?? ""
-      }
-    })
-
-    if(!res.ok) {
-      throw new Error(String("Status: " + res.status + "- message: " + res.statusText))
-    }
-
-    const json = await res.json()
-    responseApi = json
-  } catch (err) {
-    responseApi = { urls: [] }
-    ErrorReponse = err.message
-    console.log(err)
-  }
-
-  if(ErrorReponse !== "") {
+  if(!jwtCookie) {
     return (
       <>
-        <p>{ErrorReponse}</p>
+        <p>Unauthorized - Not found Auth header</p>
       </>
     )
   }
 
-  if(responseApi.urls.length === 0) {
+  const [error, urls] = await getAllUrls(jwtCookie)
+  
+  if(error) {
     return (
       <>
-        <p>You dont have url's.</p>
-        <p>Please go to the "cut your url" section</p>
+        <p>{error}</p>
+      </>
+    )
+  }
+
+  if(urls?.length === 0) {
+    return (
+      <>
+        <div>
+          <p>You dont have url's.</p>
+          <p>Please go to the "cut your url" section</p>
+        </div>
       </>
     )
   }
 
   return (
     <>
+      <aside style="width:auto; background:none; border:none; padding:0;">
+        {status && message && (
+          <p class="notice" style="width: fit-content;">
+            <span>StatusCode: </span><mark style={Number(status) > 499 && "background-color: #f33 !important;"}>{status}</mark>
+            <br />
+            <i>Mensaje: {message}</i>
+          </p>
+        )}
+      </aside>
       <ul style="list-style-type: disclosure-closed;">
         {
-          responseApi.urls.map((url) => {
+          urls?.map((url) => {
             return (
               <li>
                 <a href={url.short_url}>{url.short_url}</a>
                 <small> ({url.original_url})</small>
+                <form method="POST" action="/urls">
+                  <input type="hidden" name="hash_id" value={url.hash}/>
+                  <button>x</button>
+                </form>
               </li>
             )
           })

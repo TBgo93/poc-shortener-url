@@ -1,9 +1,12 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
 import { validatorMiddleware, validatorPermission } from "@/middlewares/validator.ts"
 import { UUID } from "@/helpers/uuid-generator.ts"
-import { FILE } from "@/helpers/reader-file.ts"
 import { MESSAGE } from "@/constants/message.ts"
 import { StatusCodes } from "@/constants/http-status-codes.ts"
+import { SavedURL } from '@/types/common.d.ts';
+// DenoKV - BBDD
+const db = await Deno.openKv();
+const URLS = "urls"
 
 const api = new Hono()
 
@@ -13,7 +16,10 @@ api.use("/*", validatorPermission)
 // GET -> Busque y devuelva todas mis URL's acortadas
 api.get("/urls", async (c) => {
   try {
-    const urls = await FILE.reader()
+    const urls: SavedURL[] = []
+    const list = db.list<SavedURL>({ prefix: [URLS] })
+
+    for await (const res of list) urls.push(res.value)
 
     return c.json({ urls }, StatusCodes.OK)
   } catch (err) {
@@ -30,7 +36,10 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
   let isCustom
 
   try {
-    const urls = await FILE.reader()
+    const urls: SavedURL[] = []
+    const list = db.list<SavedURL>({ prefix: [URLS] })
+
+    for await (const res of list) urls.push(res.value)
 
     const lenght = urls.length
     const autoIncrementalID = lenght + 1
@@ -50,15 +59,21 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
       isCustom = false
     }
 
-    urls.push({
+    const newUrl = {
       id: autoIncrementalID,
       original_url: url,
       short_url: shortURL,
       is_custom: isCustom,
       hash: uuid
-    })
+    }
 
-    await FILE.writter(urls)
+    const res = await db.atomic()
+      .set([URLS, uuid], newUrl)
+      .commit();
+
+    if(!res.ok) {
+      return c.json({ message: "Cannot save new URL" }, StatusCodes.CONFLICT)
+    }
 
     const response = JSON.stringify({ url: url, short_url: shortURL })
     return c.body(response, StatusCodes.CREATED)
@@ -69,18 +84,15 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
 
 // DELETE -> Eliminar, por id, los recursos guardados
 api.delete("/urls/:id", async (c) => {
-  const id = c.req.param("id")
+  const hashId = c.req.param("id")
 
   try {
-    const urls = await FILE.reader()
-    const url = urls.find((url) => url.hash === id)
-
-    if(!url) {
+    const url = await db.get([URLS, hashId])
+    if(!url.value) {
       return c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND)
     }
 
-    const newUrls = urls.filter((url) => url.hash !== id)
-    await FILE.writter(newUrls)
+    await db.delete([URLS, hashId]);
 
     return c.json({ message: MESSAGE.Deleted }, StatusCodes.OK)
   } catch (err) {
