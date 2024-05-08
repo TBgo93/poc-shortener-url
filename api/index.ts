@@ -46,7 +46,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
 
     const alreadyExistUrl = urls.find(({ original_url }) => original_url === url)
     if(alreadyExistUrl) {
-      return c.json({ message: MESSAGE.AlreadyExist, resouce: alreadyExistUrl }, StatusCodes.CONFLICT)
+      return c.json({ message: MESSAGE.AlreadyExist, resource: alreadyExistUrl }, StatusCodes.CONFLICT)
     }
 
     const uuid = await UUID.generateShort()
@@ -72,7 +72,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
       .commit();
 
     if(!res.ok) {
-      return c.json({ message: "Cannot save new URL" }, StatusCodes.CONFLICT)
+      return c.json({ message: "Cannot save new URL", resource: url }, StatusCodes.CONFLICT)
     }
 
     const response = JSON.stringify({ url: url, short_url: shortURL })

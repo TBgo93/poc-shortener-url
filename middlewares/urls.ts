@@ -1,7 +1,7 @@
 import { type MiddlewareHandler } from "https://deno.land/x/hono@v4.2.8/types.ts"
 import { getCookie, createMiddleware } from "https://deno.land/x/hono@v4.2.8/helper.ts"
 import { JWT_TOKEN } from "@/constants/config-request.ts";
-import { deleteUrlByHashid } from "@/services/urls.ts";
+import { deleteUrlByHashid, saveUrl } from "@/services/urls.ts";
 
 type Payload = {
   url: FormDataEntryValue
@@ -59,27 +59,21 @@ const validatorUrls: MiddlewareHandler = async (c) => {
     payload.custom_path = customPath
   }
 
-  try {
-    const res = await fetch("http://localhost:8787/api/urls/cut", {
-      method: "POST",
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': jwtCookie
-      },
-      body: JSON.stringify(payload)
-    })
-
-    if(!res.ok) {
-      const json = await res.json()
-      const message = json.message.split(" ").join("-").toLowerCase()
-      return c.redirect(`/urls/cut?status=${res.status}&message=${message}`)
-    }
-
-    return c.redirect("/urls")
-  } catch (err) {
-    console.log("validatorUrls", { err })
-    throw new Error(String("validatorUrls" + err))
+  const [error, response] = await saveUrl(jwtCookie, payload)
+  if(error) {
+    console.log("validatorUrls", { error })
+    throw new Error(String("validatorUrls" + error))
   }
+
+  const { statusCode } = response
+  if(statusCode === 200) {
+    return c.redirect("/urls")
+  }
+
+  const { json: { message } } = response
+  const parsedMessage = message.split(" ").join("-").toLowerCase()
+
+  return c.redirect(`/urls/cut?status=${statusCode}&message=${parsedMessage}`)
 }
 
 export { validatorUrls, validatorDeleteUrl }

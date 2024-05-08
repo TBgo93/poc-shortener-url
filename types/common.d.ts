@@ -6,6 +6,11 @@ export interface SavedURL {
   hash: string
 }
 
+export type Payload = {
+  url: FormDataEntryValue
+  custom_path?: FormDataEntryValue
+}
+
 export interface JsonDB {
   urls: Array<SavedURL>
 }

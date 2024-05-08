@@ -56,12 +56,14 @@ const UrlsPage: FC<PropsWithChildren> = async () => {
         {
           urls?.map((url) => {
             return (
-              <li>
-                <a href={url.short_url}>{url.short_url}</a>
-                <small> ({url.original_url})</small>
+              <li style="display: flex; gap: 16px; align-items: center;">
+                <div style="display: flex; flex-direction: column;">
+                  <a href={url.short_url}>{url.short_url}</a>
+                  <small> ({url.original_url})</small>
+                </div>
                 <form method="POST" action="/urls">
                   <input type="hidden" name="hash_id" value={url.hash}/>
-                  <button>x</button>
+                  <button style="margin: 0; padding: .25rem .75rem">x</button>
                 </form>
               </li>
             )
