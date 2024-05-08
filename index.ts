@@ -1,6 +1,6 @@
-import { app } from "./app/server/index.tsx";
+import { app } from "@/app/server/index.tsx";
 import { ENV } from "@/helpers/envs.ts";
 
-const optServe = ENV.IS_PROD ? {} : { port: ENV.PORT }
+const serveOptions = ENV.IS_PROD ? {} : { port: ENV.PORT }
 
-Deno.serve(optServe, app.fetch)
+Deno.serve(serveOptions, app.fetch)

@@ -8,14 +8,13 @@ import { bodyLimiter } from "@/middlewares/limiters.ts"
 import { validatorUrls, validatorDeleteUrl } from "@/middlewares/urls.ts"
 import { api } from "@/api/index.ts"
 import { v1 } from "@/api/v1/index.ts"
-import { MESSAGE } from "@/constants/message.ts"
-import { StatusCodes } from "@/constants/http-status-codes.ts"
 
 import Layout from '@/app/layouts/index.tsx';
 import AuthPage from "@/app/pages/auth/index.tsx"
 import UrlsPage from "@/app/pages/urls/index.tsx"
 import CutUrlsPage from "@/app/pages/cut-url/index.tsx"
 import NotFoundPage from "@/app/pages/404/index.tsx"
+import ErrorPage from "@/app/pages/5xx/index.tsx";
 
 const app = new Hono()
 
@@ -52,7 +51,7 @@ app.onError((err, c) => {
     return c.redirect("/auth")
   }
   console.error(err)
-  return c.text(MESSAGE.InternalServerError, StatusCodes.INTERNAL_SERVER_ERROR)
+  return c.render(<ErrorPage />)
 })
 
 export { app }

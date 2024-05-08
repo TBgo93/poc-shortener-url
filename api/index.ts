@@ -1,12 +1,10 @@
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
 import { validatorMiddleware, validatorPermission } from "@/middlewares/validator.ts"
 import { UUID } from "@/helpers/uuid-generator.ts"
-import { MESSAGE } from "@/constants/message.ts"
+import { Message } from "@/constants/message.ts"
 import { StatusCodes } from "@/constants/http-status-codes.ts"
 import { SavedURL } from '@/types/common.d.ts';
-// DenoKV - BBDD
-const db = await Deno.openKv();
-const URLS = "urls"
+import { Deno_KV, Key } from "@/db/index.ts"
 
 const api = new Hono()
 
@@ -17,14 +15,14 @@ api.use("/*", validatorPermission)
 api.get("/urls", async (c) => {
   try {
     const urls: SavedURL[] = []
-    const list = db.list<SavedURL>({ prefix: [URLS] })
+    const list = Deno_KV.list<SavedURL>({ prefix: [Key.URLS] })
 
     for await (const res of list) urls.push(res.value)
 
     return c.json({ urls }, StatusCodes.OK)
   } catch (err) {
     console.log(err)
-    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
+    return c.json({ message: Message.INTERNAL_SERVER_ERROR, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
 })
 
@@ -37,7 +35,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
 
   try {
     const urls: SavedURL[] = []
-    const list = db.list<SavedURL>({ prefix: [URLS] })
+    const list = Deno_KV.list<SavedURL>({ prefix: [Key.URLS] })
 
     for await (const res of list) urls.push(res.value)
 
@@ -46,7 +44,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
 
     const alreadyExistUrl = urls.find(({ original_url }) => original_url === url)
     if(alreadyExistUrl) {
-      return c.json({ message: MESSAGE.AlreadyExist, resource: alreadyExistUrl }, StatusCodes.CONFLICT)
+      return c.json({ message: Message.ALREADY_EXIST, resource: alreadyExistUrl }, StatusCodes.CONFLICT)
     }
 
     const uuid = await UUID.generateShort()
@@ -67,18 +65,18 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
       hash: uuid
     }
 
-    const res = await db.atomic()
-      .set([URLS, uuid], newUrl)
+    const res = await Deno_KV.atomic()
+      .set([Key.URLS, uuid], newUrl)
       .commit();
 
     if(!res.ok) {
-      return c.json({ message: "Cannot save new URL", resource: url }, StatusCodes.CONFLICT)
+      return c.json({ message: Message.CANNOT_SAVED, resource: url }, StatusCodes.CONFLICT)
     }
 
     const response = JSON.stringify({ url: url, short_url: shortURL })
     return c.body(response, StatusCodes.CREATED)
   } catch (err) {
-    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
+    return c.json({ message: Message.INTERNAL_SERVER_ERROR, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
 })
 
@@ -87,21 +85,21 @@ api.delete("/urls/:id", async (c) => {
   const hashId = c.req.param("id")
 
   try {
-    const url = await db.get([URLS, hashId])
+    const url = await Deno_KV.get([Key.URLS, hashId])
     if(!url.value) {
-      return c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND)
+      return c.json({ message: Message.NOT_FOUND }, StatusCodes.NOT_FOUND)
     }
 
-    await db.delete([URLS, hashId]);
+    await Deno_KV.delete([Key.URLS, hashId]);
 
-    return c.json({ message: MESSAGE.Deleted }, StatusCodes.OK)
+    return c.json({ message: Message.DELETED }, StatusCodes.OK)
   } catch (err) {
-    return c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR)
+    return c.json({ message: Message.INTERNAL_SERVER_ERROR, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
 })
 
 // Handlers
-api.notFound((c) => c.json({ message: MESSAGE.NotFound }, StatusCodes.NOT_FOUND))
-api.onError((err, c) => c.json({ message: MESSAGE.InternalServerError, err }, StatusCodes.INTERNAL_SERVER_ERROR))
+api.notFound((c) => c.json({ message: Message.NOT_FOUND }, StatusCodes.NOT_FOUND))
+api.onError((err, c) => c.json({ message: Message.INTERNAL_SERVER_ERROR, err }, StatusCodes.INTERNAL_SERVER_ERROR))
 
 export { api }
