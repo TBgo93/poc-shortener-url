@@ -1,4 +1,5 @@
-import { SavedURL } from "@/types/common.d.ts";
+import { SavedURL, Payload } from "@/types/common.d.ts";
+import { ENV } from "@/helpers/envs.ts";
 
 type GetJson = { 
   urls: SavedURL[] 
@@ -6,6 +7,24 @@ type GetJson = {
 
 type DeleteJson = {
   message: string
+}
+
+type PostJson = CreatedResource | ConflitToSave
+
+type ConflitToSave = {
+  statusCode: 409 | 500
+  json: {
+    message: string
+    resource: string
+  }
+}
+
+type CreatedResource = {
+  statusCode: 200
+  json: {
+    url: string
+    short_url: string
+  }
 }
 
 type ResponseService<T> = [
@@ -19,7 +38,7 @@ type ResponseService<T> = [
 
 const getAllUrls = async (authCookie: string): Promise<ResponseService<SavedURL[]>> => {
   try {
-    const res = await fetch("http://localhost:8787/api/urls", {
+    const res = await fetch(`${ENV.HOST}/api/urls`, {
       headers: {
         "Authorization": authCookie
       }
@@ -44,7 +63,7 @@ const getAllUrls = async (authCookie: string): Promise<ResponseService<SavedURL[
 
 const deleteUrlByHashid = async (authCookie: string, hash: string): Promise<ResponseService<DeleteJson>> => {
   try {
-    const res = await fetch(`http://localhost:8787/api/urls/${hash}`, {
+    const res = await fetch(`${ENV.HOST}/api/urls/${hash}`, {
       method: "DELETE",
       headers: {
         "Authorization": authCookie
@@ -64,4 +83,27 @@ const deleteUrlByHashid = async (authCookie: string, hash: string): Promise<Resp
   }
 }
 
-export { getAllUrls, deleteUrlByHashid }
+const saveUrl = async (authCookie: string, payload: Payload): Promise<ResponseService<PostJson>> => {
+  try {
+    const res = await fetch(`${ENV.HOST}/api/urls/cut`, {
+      method: "POST",
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authCookie
+      },
+      body: JSON.stringify(payload)
+    })
+
+    const json = await res.json()
+    const statusCode = res.status as 409 | 500
+
+    return [null, { statusCode: res.ok ? 200 : statusCode, json }]
+  } catch (err) {
+    console.log(err)
+    const errorMessage = err.message
+
+    return [errorMessage, null]
+  }
+}
+
+export { getAllUrls, deleteUrlByHashid, saveUrl }
