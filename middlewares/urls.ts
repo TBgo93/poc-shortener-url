@@ -26,7 +26,8 @@ const validatorDeleteUrl = createMiddleware(async (c, next) => {
     throw new Error("Bad request, hash_id is required")
   }
 
-  const [error, response] = await deleteUrlByHashid(jwtCookie, hashId.toString())
+  const { origin: HOST } = new URL(c.req.url)
+  const [error, response] = await deleteUrlByHashid(HOST, jwtCookie, hashId.toString())
 
   if(error) {
     return c.redirect(`/urls?error=${error}`)
@@ -59,7 +60,8 @@ const validatorUrls: MiddlewareHandler = async (c) => {
     payload.custom_path = customPath
   }
 
-  const [error, response] = await saveUrl(jwtCookie, payload)
+  const { origin: HOST } = new URL(c.req.url)
+  const [error, response] = await saveUrl(HOST, jwtCookie, payload)
   if(error) {
     console.log("validatorUrls", { error })
     throw new Error(String("validatorUrls" + error))

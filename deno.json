@@ -4,5 +4,13 @@
   },
   "imports": {
     "@/": "./"
+  },
+  "deploy": {
+    "project": "94d22249-9982-433b-bf65-ed4a9fae9f2b",
+    "exclude": [
+      "**/node_modules"
+    ],
+    "include": [],
+    "entrypoint": "index.ts"
   }
 }

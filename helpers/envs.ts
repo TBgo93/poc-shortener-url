@@ -9,7 +9,6 @@ const ENV_SECRET = env["SECRET"] ?? Deno.env.get("SECRET")
 const ENV_PERMISSION_WRITE = env["PERMISSION_WRITE"] ?? Deno.env.get("PERMISSION_WRITE")
 const ENV_PERMISSION_READ = env["PERMISSION_READ"] ?? Deno.env.get("PERMISSION_READ")
 const ENV_IS_PROD = env["IS_PROD"] ?? Deno.env.get("IS_PROD")
-const ENV_HOST = env["HOST"] ?? Deno.env.get("HOST")
 const ENV_PORT = env["PORT"] ?? Deno.env.get("PORT")
 
 
@@ -22,7 +21,6 @@ const ENV = {
   PERMISSION_READ: ENV_PERMISSION_READ,
   PORT: Number(ENV_PORT),
   IS_PROD: ENV_IS_PROD === "true" ? true : false,
-  HOST: ENV_IS_PROD === "true" ? ENV_HOST : String("http://localhost:" + ENV_PORT)
 }
 
 export { ENV }

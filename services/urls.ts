@@ -1,5 +1,4 @@
 import { SavedURL, Payload } from "@/types/common.d.ts";
-import { ENV } from "@/helpers/envs.ts";
 
 type GetJson = { 
   urls: SavedURL[] 
@@ -36,9 +35,9 @@ type ResponseService<T> = [
 ]
 
 
-const getAllUrls = async (authCookie: string): Promise<ResponseService<SavedURL[]>> => {
+const getAllUrls = async (host: string, authCookie: string): Promise<ResponseService<SavedURL[]>> => {
   try {
-    const res = await fetch(`${ENV.HOST}/api/urls`, {
+    const res = await fetch(`${host}/api/urls`, {
       headers: {
         "Authorization": authCookie
       }
@@ -61,9 +60,9 @@ const getAllUrls = async (authCookie: string): Promise<ResponseService<SavedURL[
 }
 
 
-const deleteUrlByHashid = async (authCookie: string, hash: string): Promise<ResponseService<DeleteJson>> => {
+const deleteUrlByHashid = async (host: string, authCookie: string, hash: string): Promise<ResponseService<DeleteJson>> => {
   try {
-    const res = await fetch(`${ENV.HOST}/api/urls/${hash}`, {
+    const res = await fetch(`${host}/api/urls/${hash}`, {
       method: "DELETE",
       headers: {
         "Authorization": authCookie
@@ -83,9 +82,9 @@ const deleteUrlByHashid = async (authCookie: string, hash: string): Promise<Resp
   }
 }
 
-const saveUrl = async (authCookie: string, payload: Payload): Promise<ResponseService<PostJson>> => {
+const saveUrl = async (host: string, authCookie: string, payload: Payload): Promise<ResponseService<PostJson>> => {
   try {
-    const res = await fetch(`${ENV.HOST}/api/urls/cut`, {
+    const res = await fetch(`${host}/api/urls/cut`, {
       method: "POST",
       headers: {
         'Content-Type': 'application/json',
