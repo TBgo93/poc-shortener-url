@@ -6,8 +6,17 @@ const generateUUID = async () => {
   return await v5.generate(NAMESPACE_DNS, encodedUUID)
 }
 
+const generateShortUUID = async () => {
+  const uuid = await generateUUID()
+
+  const randomNumber = Math.ceil((Math.random() * 10)); // 1 - 10
+  const shortUUID = uuid.split("-").join("").slice(randomNumber, randomNumber + 8)
+  return shortUUID
+}
+
 const UUID = {
-  generate: generateUUID
+  generate: generateUUID,
+  generateShort: generateShortUUID
 }
 
 export { UUID }
