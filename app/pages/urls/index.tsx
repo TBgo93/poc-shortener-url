@@ -8,6 +8,7 @@ import { getAllUrls } from "@/services/urls.ts";
 
 const UrlsPage: FC<PropsWithChildren> = async () => {
   const c = useRequestContext()
+  const { origin: HOST } = new URL(c.req.url)
   const { status, message } = c.req.query()
   const jwtCookie = getCookie(c, JWT_TOKEN)
   // Buscar otra forma que no sea porq query param o sanitizarlor
@@ -20,7 +21,7 @@ const UrlsPage: FC<PropsWithChildren> = async () => {
     )
   }
 
-  const [error, urls] = await getAllUrls(jwtCookie)
+  const [error, urls] = await getAllUrls(HOST, jwtCookie)
   
   if(error) {
     return (
