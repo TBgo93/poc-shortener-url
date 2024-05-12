@@ -73,8 +73,7 @@ api.post("/urls/cut", validatorMiddleware, async (c) => {
       return c.json({ message: Message.CANNOT_SAVED, resource: url }, StatusCodes.CONFLICT)
     }
 
-    const response = JSON.stringify({ url: url, short_url: shortURL })
-    return c.body(response, StatusCodes.CREATED)
+    return c.json({ url: url, short_url: shortURL }, StatusCodes.CREATED)
   } catch (err) {
     return c.json({ message: Message.INTERNAL_SERVER_ERROR, err }, StatusCodes.INTERNAL_SERVER_ERROR)
   }
