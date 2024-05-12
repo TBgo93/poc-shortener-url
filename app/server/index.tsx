@@ -2,7 +2,7 @@
 /** @jsxFrag Fragment */
 
 import { Hono } from 'https://deno.land/x/hono@v4.2.8/mod.ts'
-import { jsx, secureHeaders, cors } from 'https://deno.land/x/hono@v4.2.8/middleware.ts'
+import { jsx, secureHeaders, cors, serveStatic } from 'https://deno.land/x/hono@v4.2.8/middleware.ts'
 import { customAuthMiddleware, validatorAuth, jwtMiddleware } from "@/middlewares/auth.ts";
 import { bodyLimiter } from "@/middlewares/limiters.ts"
 import { validatorUrls, validatorDeleteUrl } from "@/middlewares/urls.ts"
@@ -29,6 +29,8 @@ app.use(bodyLimiter)
 // Secure Headers middleware
 app.use(secureHeaders())
 app.use(cors())
+// Statics files
+app.use('/static/*', serveStatic({ root: './' }))
 
 // APP routes
 app.use("*", Layout)
