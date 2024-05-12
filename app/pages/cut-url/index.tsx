@@ -18,7 +18,7 @@ const CutUrlsPage: FC<PropsWithChildren> = () => {
           </p>
         )}
       </aside>
-      <form method="POST" action="/urls/cut">
+      <form id="form-to-save" method="POST">
         <label htmlFor="original_url">
           <span style="display:block;">Url to cut *</span>
           <input type="text" name="original_url" placeholder="https://..." required minlength={10} maxlength={32} pattern="https?://.+"/>

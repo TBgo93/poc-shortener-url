@@ -5,8 +5,13 @@ import { useRequestContext } from 'https://deno.land/x/hono@v4.2.8/middleware.ts
 
 const TITLES: Record<string, string> = {
   "/urls": "Urls",
-  "/urls/cut": "Cut your url",
+  "/cut-url": "Cut your url",
   "/auth": "Auth panel"
+}
+
+const JS_MODULE: Record<string, string> = {
+  "/urls": "./static/get-urls.js",
+  "/cut-url": "./static/post-url.js",
 }
 
 const Layout = jsxRenderer(({ children }) => {
@@ -22,6 +27,7 @@ const Layout = jsxRenderer(({ children }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title} - Shortener Url</title>
         <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+        {JS_MODULE[reqPath] && <script type="module" async src={JS_MODULE[reqPath]} />}
       </head>
       <body>
         <header>
