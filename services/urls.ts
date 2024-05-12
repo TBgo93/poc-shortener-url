@@ -1,38 +1,4 @@
-import { SavedURL, Payload } from "@/types/common.d.ts";
-
-type GetJson = { 
-  urls: SavedURL[] 
-}
-
-type DeleteJson = {
-  message: string
-}
-
-type PostJson = CreatedResource | ConflitToSave
-
-type ConflitToSave = {
-  statusCode: 409 | 500
-  json: {
-    message: string
-    resource: string
-  }
-}
-
-type CreatedResource = {
-  statusCode: 200
-  json: {
-    url: string
-    short_url: string
-  }
-}
-
-type ResponseService<T> = [
-  error: null,
-  response: T
-] | [
-  error: Error,
-  response: null
-]
+import { SavedURL, Payload, ResponseService, GetJson, DeleteJson, PostJson } from "@/types/common.d.ts";
 
 
 const getAllUrls = async (host: string, authCookie: string): Promise<ResponseService<SavedURL[]>> => {
