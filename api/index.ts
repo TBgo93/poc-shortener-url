@@ -100,6 +100,9 @@ api.delete("/urls/:id", async (c) => {
 
 // Handlers
 api.notFound((c) => c.json({ message: Message.NOT_FOUND }, StatusCodes.NOT_FOUND))
-api.onError((err, c) => c.json({ message: Message.INTERNAL_SERVER_ERROR, err }, StatusCodes.INTERNAL_SERVER_ERROR))
+api.onError((err, c) => {
+  console.log({ err })
+  return c.json({ message: Message.INTERNAL_SERVER_ERROR, err }, StatusCodes.INTERNAL_SERVER_ERROR)
+})
 
 export { api }
